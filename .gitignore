@@ -1,6 +1,8 @@
 node_modules/
 dist/
 build/
+# electron-builder's icon/resources dir is source, not build output
+!apps/desktop/build/
 .next/
 out/
 *.log
