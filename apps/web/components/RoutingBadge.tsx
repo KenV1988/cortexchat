@@ -14,9 +14,9 @@ interface Props {
 const TIER_LABEL: Record<string, string> = {
   tiny_local: 'tiny · local',
   medium_local: 'medium · local',
-  open_cloud: 'open cloud',
-  premium: 'premium',
-  moe: 'mixture-of-experts',
+  open_cloud: 'open cloud · free',
+  premium: 'flagship · free',
+  moe: 'mixture-of-experts · free',
 };
 
 export function RoutingBadge({ model, provider, category, tier, escalated, reasoning }: Props) {

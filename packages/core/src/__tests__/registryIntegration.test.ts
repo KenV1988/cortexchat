@@ -55,6 +55,18 @@ describe('shipped config/models.yaml', () => {
     }
   });
 
+  it('is 100% free — no model in the default registry has any per-token cost', () => {
+    // The project's promise is "totally free by default": local Ollama models
+    // plus OpenRouter's free-tier open-source models. Anyone who wants paid
+    // frontier models can add them in their own fork/deployment — but the
+    // shipped default must never quietly start costing money.
+    const models = loadModelRegistry(REGISTRY_PATH);
+    for (const model of models) {
+      expect(model.costPerMTokIn, `model "${model.id}" has a nonzero input cost`).toBe(0);
+      expect(model.costPerMTokOut, `model "${model.id}" has a nonzero output cost`).toBe(0);
+    }
+  });
+
   it('has at least one free local model for the cheapest tier', () => {
     const models = loadModelRegistry(REGISTRY_PATH);
     const tinyLocal = models.filter((m) => m.tier === 'tiny_local');

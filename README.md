@@ -1,10 +1,16 @@
 # cortexchat
 
 An open-source, local-first AI chat app that automatically routes every
-message to the cheapest model capable of handling it — a free 0.5B local
-model for "hello", escalating through bigger local models, then cheap open
-cloud models, and only reaching for a premium frontier model when the task
-actually needs it.
+message to the smallest model capable of handling it — a tiny local model
+for "hello", escalating through bigger local models up to the strongest
+free open-source cloud models for genuinely hard tasks.
+
+**The default setup is 100% free.** Every model in the shipped registry
+costs $0: local Ollama models (free, private, offline) plus OpenRouter's
+free-tier open-source models (free account, no payment method needed). A
+test enforces that no paid model can sneak into the default registry. Paid
+providers (OpenAI/Anthropic) are supported by the adapters for anyone who
+explicitly opts in via `config/models.yaml`, but nothing requires them.
 
 This is **milestone 1** of a larger vision (see [Scope](#scope) below): a
 real, working, fully-tested web chat app with genuine model routing,
@@ -36,7 +42,7 @@ pnpm install
 # Pull at least one tiny local model so the router has something to route to:
 ollama pull qwen2.5:0.5b
 
-cp .env.example .env   # optionally add OPENAI_API_KEY / ANTHROPIC_API_KEY / OPENROUTER_API_KEY
+cp .env.example .env   # optionally add a FREE OpenRouter key (openrouter.ai/keys) for the big cloud models
 
 pnpm build              # builds packages/* once so apps/web can import their compiled output
 pnpm --filter @cortexchat/web dev

@@ -29,11 +29,21 @@ every device connects to it.
 git clone https://github.com/KenV1988/cortexchat.git
 cd cortexchat
 pnpm install
-cp .env.example .env    # optional: add OPENAI_API_KEY / ANTHROPIC_API_KEY / OPENROUTER_API_KEY
+cp .env.example .env    # optional: add a FREE OpenRouter key — see below
 
 pnpm build              # compiles the workspace packages
 pnpm dev                # starts the app at http://localhost:3000
 ```
+
+**Everything is free.** With Ollama running you need no keys at all. To
+also unlock the strongest free open-source cloud models (Llama 3.3 70B,
+DeepSeek R1, Qwen 72B — used automatically for hard questions), create a
+free account at https://openrouter.ai, generate a key at
+https://openrouter.ai/keys (no payment method required), and put it in
+`.env` as `OPENROUTER_API_KEY`. The default model registry only ever uses
+OpenRouter's `:free` models, so there is nothing to be billed for. Free
+models are rate-limited; if one is retired, pick a replacement at
+https://openrouter.ai/models?max_price=0 and edit `config/models.yaml`.
 
 Open **http://localhost:3000** and chat. The badge under each answer shows
 which model handled it and why.
