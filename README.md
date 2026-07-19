@@ -137,6 +137,12 @@ honest list of what's next and in what order.
   "free" for cost-routing purposes; a real energy-per-token model is
   future work.
 
+## Product documentation
+
+- [Product Requirements Document (English)](docs/PRD.md)
+- [Tootenõuete dokument (eesti keeles)](docs/PRD.et.md)
+- [Running on web / desktop / Android / iOS](docs/RUNNING.md)
+
 ## Architecture
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full system
