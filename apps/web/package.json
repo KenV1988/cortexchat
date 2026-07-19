@@ -1,0 +1,40 @@
+{
+  "name": "@cortexchat/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "pnpm --filter @cortexchat/core --filter @cortexchat/providers --filter @cortexchat/db --filter @cortexchat/memory run build",
+    "dev": "next dev",
+    "prebuild": "pnpm --filter @cortexchat/core --filter @cortexchat/providers --filter @cortexchat/db --filter @cortexchat/memory run build",
+    "build": "next build",
+    "start": "next start",
+    "clean": "rm -rf .next",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@cortexchat/core": "workspace:*",
+    "@cortexchat/db": "workspace:*",
+    "@cortexchat/memory": "workspace:*",
+    "@cortexchat/providers": "workspace:*",
+    "drizzle-orm": "^0.36.1",
+    "highlight.js": "^11.10.0",
+    "next": "^15.0.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-markdown": "^9.0.1",
+    "rehype-highlight": "^7.0.1",
+    "remark-gfm": "^4.0.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.2",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  }
+}

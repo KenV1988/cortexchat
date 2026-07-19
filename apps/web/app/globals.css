@@ -1,0 +1,58 @@
+@import 'tailwindcss';
+@import 'highlight.js/styles/atom-one-dark.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #ffffff;
+  --bg-subtle: #f7f7f8;
+  --border: #e5e5e5;
+  --text: #0d0d0d;
+  --text-muted: #6b6b6b;
+  --accent: #10a37f;
+}
+
+.dark {
+  --bg: #212121;
+  --bg-subtle: #171717;
+  --border: #2f2f2f;
+  --text: #ececec;
+  --text-muted: #9b9b9b;
+  --accent: #19c37d;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.prose-chat :where(pre) {
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.prose-chat :where(code):not(pre code) {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.85em;
+}
+
+.prose-chat :where(p, ul, ol, h1, h2, h3, h4, blockquote) {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose-chat :where(ul, ol) {
+  padding-left: 1.5rem;
+}
+
+.prose-chat :where(ul) {
+  list-style: disc;
+}
+
+.prose-chat :where(ol) {
+  list-style: decimal;
+}

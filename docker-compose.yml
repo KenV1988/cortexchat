@@ -1,0 +1,34 @@
+services:
+  web:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      - DATABASE_PATH=/app/data/cortexchat.sqlite
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER:-auto}
+      - SESSION_SECRET=${SESSION_SECRET:-change-me-to-a-random-string}
+    volumes:
+      - cortexchat-data:/app/data
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  # Fully optional — comment this whole service out (and point
+  # OLLAMA_BASE_URL elsewhere, or leave it unreachable) if you'd rather run
+  # Ollama on the host or skip local inference entirely. cortexchat degrades
+  # gracefully to cloud-only routing when Ollama isn't reachable.
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - '11434:11434'
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  cortexchat-data:
+  ollama-data:

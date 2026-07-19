@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+.next
+**/.next
+data
+**/data
+*.sqlite
+*.sqlite-journal
+.git
+.env
+.env.local
+coverage
+**/dist
