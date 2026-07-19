@@ -1,8 +1,16 @@
 import type { Db } from '@cortexchat/db';
 import { memoryItems } from '@cortexchat/db';
 import type { MemoryItem, MemoryStore } from '@cortexchat/core';
-import { eq, like } from 'drizzle-orm';
+import { eq, like, or } from 'drizzle-orm';
 import { decayedScore } from './scoring.js';
+
+/** Common function words that carry no retrieval signal; everything else in a message is treated as a keyword. */
+const KEYWORD_STOPWORDS = new Set([
+  'the', 'and', 'but', 'for', 'with', 'about', 'this', 'that', 'these', 'those',
+  'was', 'were', 'are', 'have', 'has', 'had', 'does', 'did', 'can', 'could',
+  'will', 'would', 'should', 'you', 'your', 'yours', 'not', 'what', 'when',
+  'where', 'which', 'how', 'why', 'who', 'remember', 'know', 'tell', 'please',
+]);
 
 function cosineSimilarity(a: number[], b: number[]): number {
   let dot = 0;
@@ -88,13 +96,30 @@ export class SqliteMemoryStore implements MemoryStore {
   }
 
   async searchByKeyword(query: string, limit: number): Promise<MemoryItem[]> {
+    // The query is a full user message ("do you remember what editor I
+    // prefer?"), not a keyword — matching it verbatim with one LIKE would
+    // essentially never hit. Tokenize into significant words, match any,
+    // rank by how many matched.
+    const words = [...new Set(query.toLowerCase().match(/[\p{L}\p{N}]{3,}/gu) ?? [])].filter(
+      (w) => !KEYWORD_STOPWORDS.has(w),
+    );
+    if (words.length === 0) return [];
+
     const rows = await this.db
       .select()
       .from(memoryItems)
-      .where(like(memoryItems.content, `%${query}%`))
-      .limit(limit);
-    await this.touch(rows.map((r) => r.id));
-    return rows.map(rowToItem);
+      .where(or(...words.map((w) => like(memoryItems.content, `%${w}%`))));
+
+    const ranked = rows
+      .map((row) => ({
+        row,
+        hits: words.filter((w) => row.content.toLowerCase().includes(w)).length,
+      }))
+      .sort((a, b) => b.hits - a.hits)
+      .slice(0, limit);
+
+    await this.touch(ranked.map((r) => r.row.id));
+    return ranked.map((r) => rowToItem(r.row));
   }
 
   async all(): Promise<MemoryItem[]> {

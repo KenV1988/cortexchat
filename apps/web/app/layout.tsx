@@ -1,10 +1,29 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import { Sidebar } from '../components/Sidebar';
+import { AppShell } from '../components/AppShell';
 
 export const metadata: Metadata = {
   title: 'cortexchat',
   description: 'Open-source, local-first AI chat with intelligent model routing.',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'cortexchat',
+    statusBarStyle: 'black-translucent',
+  },
+  icons: {
+    icon: '/icon-192.png',
+    apple: '/icon-192.png',
+  },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#212121' },
+  ],
 };
 
 const THEME_INIT_SCRIPT = `
@@ -22,10 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="h-screen overflow-hidden antialiased">
-        <div className="flex h-full">
-          <Sidebar />
-          <main className="flex min-w-0 flex-1 flex-col">{children}</main>
-        </div>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

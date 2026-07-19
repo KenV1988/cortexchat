@@ -1,5 +1,4 @@
 import type { EmbeddingProvider, Message, MemoryStore } from '@cortexchat/core';
-import { randomUUID } from 'node:crypto';
 import { scoreMemoryItem } from './scoring.js';
 
 export interface SummarizeAndStoreParams {
@@ -35,8 +34,12 @@ export async function summarizeAndStore(params: SummarizeAndStoreParams): Promis
 
   const embedding = params.embeddingProvider ? (await params.embeddingProvider.embed([summary]))[0] : undefined;
 
+  // Deterministic id: one evolving summary row per conversation. Each turn's
+  // `trimmed` set is recomputed from the full history, so the regenerated
+  // summary always covers everything currently outside the window — a fresh
+  // row per turn would just accumulate near-duplicates of it.
   await params.store.upsert({
-    id: randomUUID(),
+    id: `summary:${params.conversationId}`,
     kind: 'summary',
     content: summary,
     ...(embedding ? { embedding } : {}),

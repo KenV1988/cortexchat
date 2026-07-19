@@ -33,7 +33,14 @@ async function buildMemoryContextMessage(latestUserContent: string, conversation
     ? await store.search((await embeddingProvider.embed([latestUserContent]))[0] ?? [], MEMORY_RESULTS_LIMIT)
     : await store.searchByKeyword(latestUserContent, MEMORY_RESULTS_LIMIT);
 
-  const relevant = results.filter((r) => r.conversationId !== conversationId || r.kind !== 'summary');
+  // This conversation's own summary is the compressed form of messages that
+  // were trimmed out of the working window — always re-inject it (not just
+  // when it happens to rank in the search results), or long conversations
+  // silently lose their beginning.
+  const ownSummary = (await store.all()).find(
+    (r) => r.id === `summary:${conversationId}` && !results.some((x) => x.id === r.id),
+  );
+  const relevant = [...(ownSummary ? [ownSummary] : []), ...results];
   if (relevant.length === 0) return undefined;
 
   return {

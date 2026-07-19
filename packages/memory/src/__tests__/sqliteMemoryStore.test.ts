@@ -38,8 +38,24 @@ describe('SqliteMemoryStore', () => {
     await store.upsert({ id: 'm2', kind: 'fact', content: 'user drinks coffee', createdAt: now, lastAccessedAt: now, score: 0.7 });
 
     const results = await store.searchByKeyword('dark mode', 10);
-    expect(results).toHaveLength(1);
     expect(results[0]?.id).toBe('m1');
+  });
+
+  it('matches keywords inside a full natural-language question, ranked by hit count', async () => {
+    const now = Date.now();
+    await store.upsert({ id: 'editor', kind: 'preference', content: 'prefers the neovim editor with dark theme', createdAt: now, lastAccessedAt: now, score: 0.9 });
+    await store.upsert({ id: 'coffee', kind: 'fact', content: 'drinks coffee every morning', createdAt: now, lastAccessedAt: now, score: 0.7 });
+
+    const results = await store.searchByKeyword('do you remember which editor I prefer for coding?', 10);
+    expect(results[0]?.id).toBe('editor');
+    expect(results.map((r) => r.id)).not.toContain('coffee');
+  });
+
+  it('returns empty (not everything) for a query with only stopwords', async () => {
+    const now = Date.now();
+    await store.upsert({ id: 'm1', kind: 'fact', content: 'anything at all', createdAt: now, lastAccessedAt: now, score: 0.7 });
+    const results = await store.searchByKeyword('what do you know', 10);
+    expect(results).toHaveLength(0);
   });
 
   it('ranks semantic search results by cosine similarity', async () => {

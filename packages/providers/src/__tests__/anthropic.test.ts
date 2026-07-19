@@ -63,6 +63,21 @@ describe('AnthropicAdapter', () => {
     expect(body.messages).toEqual([{ role: 'user', content: 'hi' }]);
   });
 
+  it('surfaces mid-stream error events as thrown errors, not silent empty replies', async () => {
+    const events = [
+      `data: ${JSON.stringify({ type: 'message_start', message: { usage: { input_tokens: 5 } } })}`,
+      `data: ${JSON.stringify({ type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } })}`,
+    ];
+    global.fetch = vi.fn().mockResolvedValue(fakeSSEResponse(events));
+
+    const adapter = createAnthropicAdapter({ ANTHROPIC_API_KEY: 'sk-test' });
+    await expect(async () => {
+      for await (const _ of adapter.chat({ model: 'claude-sonnet-5', messages: [{ role: 'user', content: 'hi' }] })) {
+        // drain
+      }
+    }).rejects.toThrow(/overloaded_error/);
+  });
+
   it('throws when used without an API key', async () => {
     const adapter = createAnthropicAdapter({});
     await expect(async () => {

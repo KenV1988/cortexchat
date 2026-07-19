@@ -47,6 +47,16 @@ describe('summarizeAndStore', () => {
     expect(store.items[0]?.content).toContain('Tallinn');
   });
 
+  it('uses a deterministic per-conversation id so repeated summarization overwrites, not accumulates', async () => {
+    const store = fakeStore();
+    const summarize = vi.fn().mockResolvedValue('some summary');
+
+    await summarizeAndStore({ trimmed: [{ role: 'user', content: 'a' }], conversationId: 'c9', store, summarize });
+    await summarizeAndStore({ trimmed: [{ role: 'user', content: 'b' }], conversationId: 'c9', store, summarize });
+
+    expect(store.items.every((i) => i.id === 'summary:c9')).toBe(true);
+  });
+
   it('embeds the summary when an embedding provider is supplied', async () => {
     const store = fakeStore();
     const summarize = vi.fn().mockResolvedValue('summary text');

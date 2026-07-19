@@ -82,6 +82,11 @@ export function createAnthropicAdapter(env: NodeJS.ProcessEnv = process.env): Pr
           };
         } else if (event.type === 'message_stop') {
           return;
+        } else if (event.type === 'error') {
+          // Anthropic reports mid-stream failures (overloaded_error, etc.) as
+          // an SSE event, not an HTTP status — surface it instead of letting
+          // the stream end looking like an empty success.
+          throw new Error(`anthropic stream error: ${event.error?.type ?? 'unknown'}: ${event.error?.message ?? ''}`);
         }
       }
     },
@@ -93,6 +98,7 @@ interface AnthropicStreamEvent {
   message?: { usage?: { input_tokens?: number } };
   delta?: { type?: string; text?: string; stop_reason?: string };
   usage?: { output_tokens?: number };
+  error?: { type?: string; message?: string };
 }
 
 function splitSystem(messages: Message[]): { system: string | undefined; messages: Array<{ role: 'user' | 'assistant'; content: string }> } {

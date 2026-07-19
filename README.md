@@ -46,6 +46,10 @@ Open http://localhost:3000. Ask a question — the routing badge under each
 reply shows exactly which model answered it, which tier it came from, and
 why (click it for the full reasoning trail).
 
+**Installing on desktop, Android, and iOS** (as a PWA from this same
+codebase): see [docs/RUNNING.md](docs/RUNNING.md) for step-by-step
+instructions per platform.
+
 ### Docker
 
 ```bash
@@ -90,6 +94,9 @@ escalation; omit them and it runs entirely offline against Ollama.
   isn't configured.
 - **Dark/light theme, markdown, code highlighting, conversation
   history/folders/pinning** — the baseline ChatGPT-like UX.
+- **Installable on desktop, Android, and iOS** — a PWA manifest, icons,
+  and a phone-friendly drawer layout make the one codebase usable as an
+  installed app on all four platforms ([docs/RUNNING.md](docs/RUNNING.md)).
 
 ## Scope
 

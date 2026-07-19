@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ClientMessage } from '../lib/client/types';
 import { Composer } from './Composer';
 import { MessageBubble } from './MessageBubble';
@@ -26,6 +26,12 @@ export function ChatWindow({ conversationId, initialMessages = [] }: Props) {
   const [error, setError] = useState<string | undefined>();
   const router = useRouter();
   const convIdRef = useRef(conversationId);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages]);
 
   async function send(text: string) {
     setError(undefined);
@@ -94,12 +100,23 @@ export function ChatWindow({ conversationId, initialMessages = [] }: Props) {
       });
     } else if (event.type === 'error') {
       setError(event.message);
+      // Finalize (or drop, if empty) the pending bubble so its sentinel id is
+      // freed — otherwise the next send would create a duplicate React key.
+      setMessages((prev) =>
+        prev.flatMap((m) =>
+          m.id === PENDING_ID ? (m.content ? [{ ...m, id: crypto.randomUUID() }] : []) : [m],
+        ),
+      );
+      setReasoning((prev) => {
+        const { [PENDING_ID]: _dropped, ...rest } = prev;
+        return rest;
+      });
     }
   }
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
           {messages.length === 0 && (
             <div className="mt-24 text-center text-[var(--text-muted)]">
