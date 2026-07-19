@@ -11,9 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.12.0
+      # pnpm comes via corepack (bundled with Node) rather than the
+      # third-party pnpm/action-setup action — some account-level Actions
+      # policies only allow GitHub-authored actions, and corepack needs no
+      # extra permissions anyway.
+      - name: Enable pnpm via corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.12.0 --activate
 
       - uses: actions/setup-node@v4
         with:
