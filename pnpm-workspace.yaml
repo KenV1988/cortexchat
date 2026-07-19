@@ -1,3 +1,6 @@
 packages:
-  - "apps/*"
+  # apps/desktop is deliberately NOT listed: it is an Electron shell built
+  # standalone in CI only (see apps/desktop/README.md), so contributors
+  # don't download ~100MB of Electron binaries on every pnpm install.
+  - "apps/web"
   - "packages/*"

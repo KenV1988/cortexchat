@@ -142,6 +142,12 @@ honest list of what's next and in what order.
 - [Product Requirements Document (English)](docs/PRD.md)
 - [Tootenõuete dokument (eesti keeles)](docs/PRD.et.md)
 - [Running on web / desktop / Android / iOS](docs/RUNNING.md)
+- [Windows one-click installer](installers/windows/README.md) — a
+  double-click `.bat` that installs Node, downloads cortexchat, builds it,
+  and creates a Desktop shortcut
+- [Native Windows .exe pipeline](apps/desktop/README.md) — an Electron
+  shell + GitHub Actions workflow that builds `cortexchat-Setup.exe` on
+  GitHub's Windows runners (experimental until Actions are unlocked)
 
 ## Architecture
 

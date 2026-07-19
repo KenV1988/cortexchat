@@ -1,0 +1,16 @@
+{
+  "name": "cortexchat-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Electron shell that bundles the cortexchat server into a native desktop app",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis --publish never"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.7.0",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  }
+}

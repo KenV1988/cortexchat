@@ -1,0 +1,80 @@
+name: Windows installer
+
+# Builds cortexchat-Setup-<version>.exe on GitHub's free Windows runners.
+# - Manual: Actions tab -> "Windows installer" -> Run workflow (installer
+#   is attached to the run as an artifact).
+# - Release: push a tag like v0.1.0 (installer is attached to a GitHub
+#   Release).
+#
+# STATUS: experimental — this workflow has not yet had a green run (Actions
+# were unavailable on this repository when it was written). Native-module
+# and packaging issues can only surface on the Windows runner itself.
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+jobs:
+  build-exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable pnpm via corepack
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.12.0 --activate
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages and web app
+        shell: bash
+        run: |
+          pnpm --filter @cortexchat/core --filter @cortexchat/providers --filter @cortexchat/db --filter @cortexchat/memory run build
+          pnpm --filter @cortexchat/web exec next build
+
+      - name: Deploy web app to a symlink-free bundle
+        shell: bash
+        run: |
+          pnpm --filter @cortexchat/web deploy --prod dist-deploy/web
+          # Runtime assets the Next tracer can't see (read via env-var paths):
+          cp config/models.yaml dist-deploy/web/models.yaml
+          cp -r packages/db/drizzle dist-deploy/web/drizzle
+
+      - name: Install desktop shell dependencies
+        shell: bash
+        working-directory: apps/desktop
+        run: npm install
+
+      - name: Rebuild native modules for Electron
+        shell: bash
+        working-directory: apps/desktop
+        run: npx @electron/rebuild --module-dir ../../dist-deploy/web --which-module better-sqlite3
+
+      - name: Build NSIS installer
+        shell: bash
+        working-directory: apps/desktop
+        run: npx electron-builder --win nsis --publish never
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cortexchat-windows-installer
+          path: apps/desktop/dist/*.exe
+
+      - name: Attach installer to release (tag builds only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" --generate-notes || true
+          gh release upload "${GITHUB_REF_NAME}" apps/desktop/dist/*.exe --repo "${GITHUB_REPOSITORY}" --clobber
