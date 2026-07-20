@@ -1,5 +1,5 @@
 @echo off
-setlocal enableextensions
+setlocal enableextensions enabledelayedexpansion
 title cortexchat installer
 echo.
 echo  ============================================
@@ -20,7 +20,7 @@ where node >nul 2>nul
 if errorlevel 1 (
   echo [1/5] Node.js not found - installing via winget...
   winget install --id OpenJS.NodeJS.LTS -e --accept-source-agreements --accept-package-agreements
-  set "PATH=%ProgramFiles%\nodejs;%PATH%"
+  set "PATH=%ProgramFiles%\nodejs;!PATH!"
 ) else (
   echo [1/5] Node.js found.
 )
@@ -33,10 +33,20 @@ if errorlevel 1 (
   exit /b 1
 )
 
-rem ---------- 2. pnpm via corepack ----------
-echo [2/5] Enabling pnpm...
-call corepack enable
-call corepack prepare pnpm@9.12.0 --activate
+rem ---------- 2. pnpm (user-level install - no administrator rights needed) ----------
+echo [2/5] Setting up pnpm...
+set "PNPM=pnpm"
+where pnpm >nul 2>nul
+if errorlevel 1 (
+  call npm install -g pnpm@9.12.0
+  rem npm's global bin dir may not be on PATH in this session yet
+  for /f "delims=" %%p in ('npm prefix -g') do set "PATH=%%p;!PATH!"
+)
+where pnpm >nul 2>nul
+if errorlevel 1 (
+  rem Last resort: run pnpm through npx - slower but always works user-level
+  set "PNPM=npx --yes pnpm@9.12.0"
+)
 
 rem ---------- 3. Download latest cortexchat ----------
 echo [3/5] Downloading cortexchat from GitHub...
@@ -56,11 +66,11 @@ move "%TEMP%\cortexchat-extract\cortexchat-main" "%INSTALL_DIR%" >nul
 rem ---------- 4. Install dependencies and build ----------
 echo [4/5] Installing and building (this takes a few minutes the first time)...
 cd /d "%INSTALL_DIR%"
-call pnpm install
+call !PNPM! install
 if errorlevel 1 ( echo   pnpm install failed. & pause & exit /b 1 )
-call pnpm build
+call !PNPM! build
 if errorlevel 1 ( echo   package build failed. & pause & exit /b 1 )
-call pnpm --filter @cortexchat/web exec next build
+call !PNPM! --filter @cortexchat/web exec next build
 if errorlevel 1 ( echo   web build failed. & pause & exit /b 1 )
 
 rem ---------- 5. Shortcuts ----------
