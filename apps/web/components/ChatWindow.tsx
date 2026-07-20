@@ -45,7 +45,18 @@ export function ChatWindow({ conversationId, initialMessages = [] }: Props) {
     });
 
     if (!res.ok || !res.body) {
-      setError(`Request failed (${res.status})`);
+      let detail = '';
+      try {
+        const text = await res.text();
+        try {
+          detail = (JSON.parse(text) as { error?: string }).error ?? text;
+        } catch {
+          detail = text;
+        }
+      } catch {
+        // body unreadable; status alone will have to do
+      }
+      setError(`Request failed (${res.status})${detail ? `: ${detail.slice(0, 600)}` : ''}`);
       setStreaming(false);
       return;
     }

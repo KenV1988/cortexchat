@@ -17,6 +17,19 @@ function encodeEvent(event: ChatStreamEvent): Uint8Array {
 }
 
 export async function POST(req: Request): Promise<Response> {
+  try {
+    return await handleChat(req);
+  } catch (err) {
+    // Surface the real failure to the UI instead of an opaque 500 — this is
+    // a self-hosted, single-user app, so exposing the error detail (and
+    // logging it server-side too) is the right tradeoff for debuggability.
+    console.error('chat request failed:', err);
+    const detail = err instanceof Error ? `${err.message}\n${err.stack ?? ''}` : String(err);
+    return Response.json({ error: detail }, { status: 500 });
+  }
+}
+
+async function handleChat(req: Request): Promise<Response> {
   const body = (await req.json()) as ChatRequestBody;
   if (!body.message || typeof body.message !== 'string') {
     return Response.json({ error: 'message is required' }, { status: 400 });

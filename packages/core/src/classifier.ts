@@ -9,7 +9,8 @@ import type { Category, Classification, Message } from './types.js';
  * structural check that runs in microseconds on a laptop CPU.
  */
 
-const GREETING_RE = /^\s*(hi|hello|hey|hiya|yo|good\s(morning|afternoon|evening)|sup)\b[!.\s]*$/i;
+const GREETING_RE =
+  /^\s*(hi|hello|hey|hiya|yo|good\s(morning|afternoon|evening)|sup|tere|tervist|t[sš]au|tere\s(hommikust|õhtust|päevast))\b[!.\s]*$/i;
 const SMALL_TALK_RE =
   /\b(how are you|what'?s up|how'?s it going|thanks?|thank you|lol|haha|nice one|good bot)\b/i;
 const CODE_FENCE_RE = /```|`[^`\n]+`/;

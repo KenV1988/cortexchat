@@ -13,6 +13,12 @@ describe('classify', () => {
     expect(result.confidence).toBeGreaterThan(0.8);
   });
 
+  it('classifies Estonian greetings', () => {
+    for (const greeting of ['tere!', 'Tere hommikust', 'tsau']) {
+      expect(classify(userMsg(greeting)).category, greeting).toBe('greeting');
+    }
+  });
+
   it('classifies small talk', () => {
     const result = classify(userMsg('how are you doing today?'));
     expect(result.category).toBe('small_talk');

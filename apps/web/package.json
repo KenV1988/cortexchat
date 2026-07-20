@@ -19,6 +19,7 @@
     "@cortexchat/db": "workspace:*",
     "@cortexchat/memory": "workspace:*",
     "@cortexchat/providers": "workspace:*",
+    "better-sqlite3": "^11.5.0",
     "drizzle-orm": "^0.36.1",
     "highlight.js": "^11.10.0",
     "next": "^15.0.3",
