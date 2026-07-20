@@ -1,5 +1,4 @@
-import { buildIsAvailable } from '@cortexchat/providers';
-import { getModels, getProviders } from '../../../lib/server/providers';
+import { getModels, getOllamaStatus, getProviders, isAvailableWith } from '../../../lib/server/providers';
 
 export const runtime = 'nodejs';
 
@@ -8,7 +7,7 @@ export async function GET(req: Request): Promise<Response> {
   const discover = url.searchParams.get('discover') === 'true';
 
   const providers = getProviders();
-  const isAvailable = buildIsAvailable(providers);
+  const isAvailable = isAvailableWith(await getOllamaStatus());
   const models = getModels();
 
   const providerStatus = await Promise.all(

@@ -1,10 +1,12 @@
-import { buildIsAvailable } from '@cortexchat/providers';
-import { getModels, getProviders } from '../../lib/server/providers';
+import { getModels, getOllamaStatus, getProviders, isAvailableWith } from '../../lib/server/providers';
 import { MemoryPanel } from '../../components/MemoryPanel';
+
+// Availability must reflect the live Ollama probe, not build-time state.
+export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
   const providers = getProviders();
-  const isAvailable = buildIsAvailable(providers);
+  const isAvailable = isAvailableWith(await getOllamaStatus());
   const models = getModels();
 
   return (

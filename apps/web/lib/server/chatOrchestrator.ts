@@ -1,13 +1,19 @@
 import 'server-only';
 import { randomUUID } from 'node:crypto';
-import type { Message, RoutingDecision } from '@cortexchat/core';
+import { NoCapableModelError, type Message, type RoutingDecision } from '@cortexchat/core';
 import { buildWorkingMemory, summarizeAndStore } from '@cortexchat/memory';
 import { messages as messagesTable, conversations as conversationsTable } from '@cortexchat/db';
 import { eq } from 'drizzle-orm';
 import { getDb } from './db';
-import { cheapestConfiguredModel, getProviderFor, getRouter } from './providers';
+import { cheapestAvailableModel, getProviderFor, getRouter } from './providers';
 import { getEmbeddingResolution, getMemoryStore } from './memory';
 import { collectChat } from './collect';
+
+const SETUP_GUIDANCE =
+  'To get answers, do one of these (both are free): ' +
+  '(1) Install Ollama from https://ollama.com, then run: ollama pull qwen2.5:0.5b — or ' +
+  '(2) create a free API key at https://openrouter.ai/keys (no payment method needed) and put it in the .env file as OPENROUTER_API_KEY, then restart cortexchat. ' +
+  'Open /api/health to see exactly what is and isn\'t set up.';
 
 export type ChatStreamEvent =
   | { type: 'meta'; routing: { model: string; provider: string; category: string; tier: string; confidence: number; escalated: boolean; reasoning: string[] } }
@@ -57,13 +63,17 @@ async function buildMemoryContextMessage(latestUserContent: string, conversation
  * providers, db) actually compose.
  */
 export async function* streamAssistantReply(conversationId: string, history: Message[]): AsyncGenerator<ChatStreamEvent> {
-  const router = getRouter();
+  const router = await getRouter();
 
   let routing: RoutingDecision;
   try {
     routing = router.route(history);
   } catch (err) {
-    yield { type: 'error', message: err instanceof Error ? err.message : 'routing failed' };
+    if (err instanceof NoCapableModelError) {
+      yield { type: 'error', message: `No AI model is available right now. ${SETUP_GUIDANCE}` };
+    } else {
+      yield { type: 'error', message: err instanceof Error ? err.message : 'routing failed' };
+    }
     return;
   }
 
@@ -101,7 +111,15 @@ export async function* streamAssistantReply(conversationId: string, history: Mes
       if (chunk.usage) usage = chunk.usage;
     }
   } catch (err) {
-    yield { type: 'error', message: err instanceof Error ? err.message : 'chat request failed' };
+    const raw = err instanceof Error ? err.message : 'chat request failed';
+    // undici's generic "fetch failed" against a local model means the Ollama
+    // daemon disappeared between the availability probe and the call —
+    // translate it into something a person can act on.
+    const message =
+      routing.model.local && /fetch failed|ECONNREFUSED|ETIMEDOUT/i.test(raw)
+        ? `Couldn't reach Ollama to run ${routing.model.id}. Make sure Ollama is running, or ${SETUP_GUIDANCE}`
+        : raw;
+    yield { type: 'error', message };
     return;
   }
 
@@ -126,7 +144,7 @@ export async function* streamAssistantReply(conversationId: string, history: Mes
   yield { type: 'done', messageId, ...(usage ? { usage } : {}) };
 
   if (working.trimmed.length > 0) {
-    const summarizerModel = cheapestConfiguredModel();
+    const summarizerModel = await cheapestAvailableModel();
     if (summarizerModel) {
       const summarizerAdapter = getProviderFor(summarizerModel);
       const { provider: embeddingProvider } = await getEmbeddingResolution();

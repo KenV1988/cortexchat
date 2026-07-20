@@ -142,6 +142,7 @@ honest list of what's next and in what order.
 - [Product Requirements Document (English)](docs/PRD.md)
 - [Tootenõuete dokument (eesti keeles)](docs/PRD.et.md)
 - [Running on web / desktop / Android / iOS](docs/RUNNING.md)
+- [Always-on: 24/7 server + phone access from anywhere](docs/ALWAYS-ON.md)
 - [Windows one-click installer](installers/windows/README.md) — a
   double-click `.bat` that installs Node, downloads cortexchat, builds it,
   and creates a Desktop shortcut
